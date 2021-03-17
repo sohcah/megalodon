@@ -1,0 +1,33 @@
+{
+  "name": "megalodon",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/sohcah/megalodon",
+  "author": "sohcah",
+  "scripts": {
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "build": "tsc",
+    "start": "node lib/index.js",
+    "dev": "tsc && node lib/index.js"
+  },
+  "dependencies": {
+    "@discordjs/opus": "^0.3.2",
+    "@google-cloud/text-to-speech": "^3.1.0",
+    "@types/psl": "^1.1.0",
+    "@types/url-parse": "^1.4.3",
+    "discord.js": "^12.2.0",
+    "psl": "^1.8.0",
+    "speechmarkdown-js": "^1.6.0",
+    "sqlite": "^4.0.19",
+    "sqlite3": "^5.0.2",
+    "to-readable-stream": "^2.1.0",
+    "url-parse": "^1.4.7",
+    "ytdl-core": "^4.4.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^3.7.0",
+    "@typescript-eslint/parser": "^3.7.0",
+    "eslint": "^7.5.0",
+    "typescript": "^3.9.7"
+  }
+}

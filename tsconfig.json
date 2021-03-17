@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "skipLibCheck": true,
+    "outDir": "lib",
+    "sourceMap": true,
+    "strict": true,
+    "lib": [
+      "ESNext"
+    ],
+    "target": "es2017",
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  },
+  "compileOnSave": true,
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
