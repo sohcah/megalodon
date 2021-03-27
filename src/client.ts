@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as Discord from "discord.js";
-import toReadableStream from "to-readable-stream"
+import toReadableStream from "to-readable-stream";
 import ytdl from "ytdl-core";
 import path from "path";
 
@@ -126,6 +126,7 @@ export class MegalodonClient {
                     content: `${this.controller.name} Disabled in <#${
                       interaction.channel_id
                     }> for ${interaction.member?.nick || interaction.member.user.username}`,
+                    allowed_mentions: [],
                   },
                 },
               });
@@ -138,6 +139,7 @@ export class MegalodonClient {
                     content: `${this.controller.name} Enabled in <#${interaction.channel_id}> for ${
                       interaction.member?.nick || interaction.member.user.username
                     }`,
+                    allowed_mentions: [],
                   },
                 },
               });
@@ -171,6 +173,7 @@ export class MegalodonClient {
                   type: 4,
                   data: {
                     content: `Set ${interaction.member.user.username}'s Name to ${name}`,
+                    allowed_mentions: [],
                   },
                 },
               });
@@ -223,31 +226,45 @@ export class MegalodonClient {
     });
 
     const connection = await channel.join();
-    if (response.audioContent) connection.play(toReadableStream(response.audioContent));
+    if (response.audioContent) {
+      const dispatcher = connection.play(toReadableStream(response.audioContent));
 
-    let guildSettings = this.guilds.get(channel.guild.id);
-    if (!guildSettings) {
-      guildSettings = {};
-    }
+      let guildSettings = this.guilds.get(channel.guild.id);
+      if (!guildSettings) {
+        guildSettings = {};
+      }
 
-    guildSettings.last_user = user.id;
-    guildSettings.last_time = Date.now();
+      guildSettings.last_user = user.id;
+      guildSettings.last_time = Date.now();
+      guildSettings.speaking = Date.now();
 
-    // Auto-Disconnect after 5 Minutes
-    if (channel.guild.id !== this.controller.devguild)
-      channel.guild.me?.setNickname(
-        `${channel.guild.me.displayName?.split(" | ")[0]} | ${
-          settings?.NAME || channel.guild.members.resolve(user.id)?.displayName || user.username
-        }`.slice(0, 32)
-      );
-    if (guildSettings.timeout) clearTimeout(guildSettings.timeout);
-    guildSettings.timeout = setTimeout(() => {
-      channel.leave();
+      // Auto-Disconnect after 5 Minutes
       if (channel.guild.id !== this.controller.devguild)
-        channel.guild.me?.setNickname(channel.guild.me.displayName?.split(" | ")[0].slice(0, 32));
-    }, 300000);
+        channel.guild.me?.setNickname(
+          `${channel.guild.me.displayName?.split(" | ")[0]} | ${
+            settings?.NAME || channel.guild.members.resolve(user.id)?.displayName || user.username
+          }`.slice(0, 32)
+        );
+      if (guildSettings.timeout) clearTimeout(guildSettings.timeout);
+      guildSettings.timeout = setTimeout(() => {
+        channel.leave();
+        if (channel.guild.id !== this.controller.devguild)
+          channel.guild.me?.setNickname(channel.guild.me.displayName?.split(" | ")[0].slice(0, 32));
+      }, 300000);
 
-    this.guilds.set(channel.guild.id, guildSettings);
+      let thisTimeout = guildSettings.timeout;
+      dispatcher.on("finish", () => {
+        if (
+          channel.guild.id !== this.controller.devguild &&
+          thisTimeout === guildSettings?.timeout
+        ) {
+          channel.guild.me?.setNickname(channel.guild.me.displayName?.split(" | ")[0].slice(0, 32));
+          guildSettings.speaking = undefined;
+        }
+      });
+
+      this.guilds.set(channel.guild.id, guildSettings);
+    }
     return;
   }
 
@@ -265,6 +282,7 @@ export class MegalodonClient {
 
     guildSettings.last_user = "music";
     guildSettings.last_time = Date.now();
+    guildSettings.speaking = Date.now();
 
     // Auto-Disconnect after 5 Minutes
     if (channel.guild.id !== this.controller.devguild)
