@@ -187,6 +187,10 @@ export class MegalodonClientController {
           (a, b) =>
             (a.guilds.get(channel.guild.id)?.last_time || 0) -
             (b.guilds.get(channel.guild.id)?.last_time || 0)
+        ).sort(
+          (a, b) =>
+            (a.guilds.get(channel.guild.id)?.speaking ? 1 : 0) -
+            (b.guilds.get(channel.guild.id)?.speaking ? 1 : 0)
         )[0];
     }
     return {

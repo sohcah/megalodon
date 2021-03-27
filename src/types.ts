@@ -15,6 +15,7 @@ export type MegalodonGuildOptions = {
   timeout?: NodeJS.Timeout;
   last_time?: number;
   last_user?: string;
+  speaking?: number;
 };
 
 export type User = {
