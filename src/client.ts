@@ -126,7 +126,7 @@ export class MegalodonClient {
                     content: `${this.controller.name} Disabled in <#${
                       interaction.channel_id
                     }> for ${interaction.member?.nick || interaction.member.user.username}`,
-                    allowed_mentions: [],
+                    allowed_mentions: { parse: [] },
                   },
                 },
               });
@@ -139,7 +139,7 @@ export class MegalodonClient {
                     content: `${this.controller.name} Enabled in <#${interaction.channel_id}> for ${
                       interaction.member?.nick || interaction.member.user.username
                     }`,
-                    allowed_mentions: [],
+                    allowed_mentions: { parse: [] },
                   },
                 },
               });
@@ -173,7 +173,7 @@ export class MegalodonClient {
                   type: 4,
                   data: {
                     content: `Set ${interaction.member.user.username}'s Name to ${name}`,
-                    allowed_mentions: [],
+                    allowed_mentions: { parse: [] },
                   },
                 },
               });
