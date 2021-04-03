@@ -27,6 +27,7 @@ export type User = {
   RATE?: number;
   BLOCK?: boolean;
   CLIPBLOCK?: boolean;
+  BYPASS?: boolean;
 };
 
 export type APISectionFunction = (...data: any[]) => { [key: string]: APISection };
