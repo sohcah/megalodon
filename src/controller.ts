@@ -123,8 +123,12 @@ export class MegalodonClientController {
         .replace(/\bwaa+\b/gi, '!["https://files.thegameroom.uk/waa.ogg"]')
         .replace(/\bwa+h+\b/gi, '!["https://files.thegameroom.uk/waa.ogg"]');
     }
-    if (content.length > 400 || user?.BLOCK) {
-      message.channel.send("No.");
+    if (content.length > 400 && !user?.BYPASS) {
+      message.channel.send("This message is too long. Please limit your message to 400 characters.");
+      return;
+    }
+    if (user?.BLOCK) {
+      message.channel.send("You are blocked from using Text-to-Speech.");
       return;
     }
     const name = user?.NAME ?? message.member?.displayName ?? message.author.username;
