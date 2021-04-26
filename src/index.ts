@@ -4,7 +4,7 @@ import { MegalodonClientController } from "./controller";
 
 (async function () {
   const db = await open({
-    filename: "database.db",
+    filename: "/megalodon.db",
     driver: sqlite3.Database,
   });
   await db.run(`CREATE TABLE if not exists users(

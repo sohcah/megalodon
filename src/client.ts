@@ -7,7 +7,7 @@ import path from "path";
 // Setup GC TTS
 import textToSpeech from "@google-cloud/text-to-speech";
 const ttsClient = new textToSpeech.TextToSpeechClient({
-  keyFile: path.resolve(__dirname, "../serviceaccount.json"),
+  keyFile: path.resolve("/megalodon-sa.json"),
 });
 import { MegalodonClientController } from "./controller";
 import { ClientWithAPI, MegalodonClientSettings, MegalodonGuildOptions, User } from "./types";

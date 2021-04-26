@@ -7,6 +7,7 @@
   "scripts": {
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "build": "tsc",
+    "docker-build": "tsc && docker build . -t megalodon",
     "start": "node lib/index.js",
     "dev": "tsc && node lib/index.js"
   },
