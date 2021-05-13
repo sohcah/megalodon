@@ -1,10 +1,11 @@
 import { open } from "sqlite";
 import sqlite3 from "sqlite3";
 import { MegalodonClientController } from "./controller";
+import path from "path";
 
 (async function () {
   const db = await open({
-    filename: "/megalodon.db",
+    filename: process.env.MEGDEV ? path.resolve(__dirname, "../database.db") : "/megalodon.db",
     driver: sqlite3.Database,
   });
   await db.run(`CREATE TABLE if not exists users(

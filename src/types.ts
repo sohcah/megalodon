@@ -1,5 +1,3 @@
-import { Client } from "discord.js";
-
 export type MegalodonClientSettings = {
   PRIMARY: boolean;
   NAME: string;
@@ -29,18 +27,3 @@ export type User = {
   CLIPBLOCK?: boolean;
   BYPASS?: boolean;
 };
-
-export type APISectionFunction = (...data: any[]) => { [key: string]: APISection };
-
-export interface APISection extends APISectionFunction {
-  get(): Promise<any>;
-  post(data: any): Promise<any>;
-  delete(): Promise<any>;
-  update(data: any): Promise<any>;
-}
-
-export interface ClientWithAPI extends Omit<Client, "api"> {
-  api: {
-    [key: string]: APISection;
-  };
-}
