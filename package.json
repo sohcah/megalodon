@@ -23,7 +23,8 @@
     "sqlite3": "^5.0.2",
     "to-readable-stream": "^2.1.0",
     "url-parse": "^1.4.7",
-    "ytdl-core": "^4.4.0"
+    "ytdl-core": "^4.4.0",
+    "ffmpeg-static": "^4.3.0"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^3.7.0",
