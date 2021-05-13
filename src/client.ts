@@ -7,14 +7,16 @@ import path from "path";
 // Setup GC TTS
 import textToSpeech from "@google-cloud/text-to-speech";
 const ttsClient = new textToSpeech.TextToSpeechClient({
-  keyFile: path.resolve("/megalodon-sa.json"),
+  keyFile: process.env.MEGDEV
+    ? path.resolve(__dirname, "../serviceaccount.json")
+    : path.resolve("/megalodon-sa.json"),
 });
 import { MegalodonClientController } from "./controller";
-import { ClientWithAPI, MegalodonClientSettings, MegalodonGuildOptions, User } from "./types";
+import { MegalodonClientSettings, MegalodonGuildOptions, User } from "./types";
 
 export class MegalodonClient {
   guilds: Map<string, MegalodonGuildOptions> = new Map();
-  client: ClientWithAPI;
+  client: Discord.Client;
   controller: MegalodonClientController;
   primary: boolean;
   settings: MegalodonClientSettings;
@@ -28,13 +30,16 @@ export class MegalodonClient {
     this.primary = primary || false;
     this.settings = settings;
 
-    this.client = (new Discord.Client({
-      disableMentions: "everyone",
+    this.client = new Discord.Client({
       allowedMentions: {
         parse: [],
+        users: [],
+        roles: [],
+        repliedUser: false,
       },
       messageCacheMaxSize: 0,
-    }) as unknown) as ClientWithAPI;
+      intents: ["GUILD_MESSAGES", "GUILD_VOICE_STATES", "GUILDS"],
+    });
 
     this.client.login(settings.TOKEN);
 
@@ -74,83 +79,45 @@ export class MegalodonClient {
           },
         ];
 
-        const devGuildCommands = await this.client.api
-          .applications(this.client.user?.id)
-          .guilds(this.controller.devguild)
-          .commands.get();
-        for (const command of devGuildCommands) {
-          if (!commands.some(i => i.name + "dev" === command.name)) {
-            this.client.api
-              .applications(this.client.user?.id)
-              .guilds(this.controller.devguild)
-              .commands(command.id)
-              .delete();
-          }
-        }
+        this.client.guilds.resolve(this.controller.devguild)?.commands.set(commands);
+        this.client.application?.commands.set(commands);
 
-        const globalCommands = await this.client.api
-          .applications(this.client.user?.id)
-          .commands.get();
-        for (const command of globalCommands) {
-          if (!commands.some(i => i.name === command.name)) {
-            this.client.api.applications(this.client.user?.id).commands(command.id).delete();
-          }
-        }
-
-        for (const command of commands) {
-          // Dev Guild Setup
-          this.client.api
-            .applications(this.client.user?.id)
-            .guilds(this.controller.devguild)
-            .commands.post({
-              data: { ...command, name: command.name + "dev" },
-            });
-
-          // Global Setup
-          this.client.api.applications(this.client.user?.id).commands.post({
-            data: command,
-          });
-        }
-        this.client.ws.on("INTERACTION_CREATE" as Discord.WSEventType, async interaction => {
+        this.client.on("interaction", async interaction => {
           if (
-            interaction.data.name === this.controller.command ||
-            interaction.data.name === this.controller.command + "dev"
+            interaction.isCommand() &&
+            (interaction.commandName === this.controller.command ||
+              interaction.commandName === this.controller.command + "dev")
           ) {
-            const autoID = `${interaction.channel_id}_${interaction.member.user.id}`;
+            const autoID = `${interaction.channelID}_${interaction.member.user.id}`;
             if (this.controller.auto.has(autoID)) {
               this.controller.auto.delete(autoID);
-              this.client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                  type: 4,
-                  data: {
-                    content: `${this.controller.name} Disabled in <#${
-                      interaction.channel_id
-                    }> for ${interaction.member?.nick || interaction.member.user.username}`,
-                    allowed_mentions: { parse: [] },
-                  },
-                },
-              });
+              interaction.reply(
+                `${this.controller.name} Disabled in <#${interaction.channelID}> for ${
+                  interaction.member?.nick || interaction.member.user.username
+                }`,
+                {
+                  allowedMentions: { parse: [] },
+                }
+              );
             } else {
               this.controller.auto.add(autoID);
-              this.client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                  type: 4,
-                  data: {
-                    content: `${this.controller.name} Enabled in <#${interaction.channel_id}> for ${
-                      interaction.member?.nick || interaction.member.user.username
-                    }`,
-                    allowed_mentions: { parse: [] },
-                  },
-                },
-              });
+              interaction.reply(
+                `${this.controller.name} Enabled in <#${interaction.channelID}> for ${
+                  interaction.member?.nick || interaction.member.user.username
+                }`,
+                {
+                  allowedMentions: { parse: [] },
+                }
+              );
               return;
             }
           } else if (
-            interaction.data.name === this.controller.command + "config" ||
-            interaction.data.name === this.controller.command + "configdev"
+            interaction.isCommand() &&
+            (interaction.commandName === this.controller.command + "config" ||
+              interaction.commandName === this.controller.command + "configdev")
           ) {
-            if (interaction.data.options?.[0]?.name === "name") {
-              const name = interaction.data.options[0].options[0].value;
+            if (interaction.options?.[0]?.name === "name") {
+              const name = interaction.options[0].options?.[0].value;
               const user = await this.controller.db.get(
                 "SELECT ID from users WHERE ID = ?",
                 interaction.member.user.id
@@ -168,14 +135,8 @@ export class MegalodonClient {
                   name
                 );
               }
-              this.client.api.interactions(interaction.id, interaction.token).callback.post({
-                data: {
-                  type: 4,
-                  data: {
-                    content: `Set ${interaction.member.user.username}'s Name to ${name}`,
-                    allowed_mentions: { parse: [] },
-                  },
-                },
+              interaction.reply(`Set ${interaction.member.user.username}'s Name to ${name}`, {
+                allowedMentions: { parse: [] },
               });
               return;
             }
@@ -201,7 +162,7 @@ export class MegalodonClient {
 
   async playSSML(
     ssml: string,
-    channel: Discord.VoiceChannel,
+    channel: Discord.BaseGuildVoiceChannel,
     user: Discord.User,
     settings?: User
   ): Promise<void> {
@@ -225,7 +186,10 @@ export class MegalodonClient {
       },
     });
 
-    const connection = await channel.join();
+		const connection = await channel.join();
+		if (channel instanceof Discord.StageChannel) {
+			await connection.voice?.setSuppressed(false);
+		}
     if (response.audioContent) {
       const dispatcher = connection.play(toReadableStream(response.audioContent));
 
@@ -268,7 +232,7 @@ export class MegalodonClient {
     return;
   }
 
-  async playYouTube(link: string, channel: Discord.VoiceChannel): Promise<void> {
+  async playYouTube(link: string, channel: Discord.BaseGuildVoiceChannel): Promise<void> {
     const video = await ytdl.getBasicInfo(link);
     const stream = ytdl(link);
 

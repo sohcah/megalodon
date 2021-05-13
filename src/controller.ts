@@ -55,7 +55,16 @@ export class MegalodonClientController {
         message.react("🚫");
         return;
       }
-      await client.playSSML(ssml, channel, message.author, user);
+      const member = await channel.guild.members.fetch(message.author);
+      if (!member) {
+        message.react("⚠");
+        return;
+      }
+			if (member.voice.suppress || member.voice.serverMute) {
+        message.react("❌");
+        return;
+			}
+			await client.playSSML(ssml, channel, message.author, user);
     }
   }
 
@@ -124,7 +133,9 @@ export class MegalodonClientController {
         .replace(/\bwa+h+\b/gi, '!["https://files.thegameroom.uk/waa.ogg"]');
     }
     if (content.length > 400 && !user?.BYPASS) {
-      message.channel.send("This message is too long. Please limit your message to 400 characters.");
+      message.channel.send(
+        "This message is too long. Please limit your message to 400 characters."
+      );
       return;
     }
     if (user?.BLOCK) {
@@ -168,10 +179,10 @@ export class MegalodonClientController {
   getChannel(
     user: Discord.User,
     clientDefault?: MegalodonClient
-  ): { channel?: Discord.VoiceChannel; client?: MegalodonClient } {
-    const channel: Discord.VoiceChannel = this.clients[0].client.channels.cache.find(
-      c => c instanceof Discord.VoiceChannel && c.members.has(user.id)
-    ) as Discord.VoiceChannel;
+  ): { channel?: Discord.BaseGuildVoiceChannel; client?: MegalodonClient } {
+    const channel: Discord.BaseGuildVoiceChannel = this.clients[0].client.channels.cache.find(
+      c => c instanceof Discord.BaseGuildVoiceChannel && c.members.has(user.id)
+    ) as Discord.BaseGuildVoiceChannel;
     if (!channel) return {};
     let client;
     if (clientDefault) {
@@ -187,18 +198,22 @@ export class MegalodonClientController {
       client = client || this.clients.find(c => channel.members.has(c.client.user?.id || ""));
       client =
         client ||
-        this.clients.sort(
-          (a, b) =>
-            (a.guilds.get(channel.guild.id)?.last_time || 0) -
-            (b.guilds.get(channel.guild.id)?.last_time || 0)
-        ).sort(
-          (a, b) =>
-            (a.guilds.get(channel.guild.id)?.speaking ? 1 : 0) -
-            (b.guilds.get(channel.guild.id)?.speaking ? 1 : 0)
-        )[0];
+        this.clients
+          .sort(
+            (a, b) =>
+              (a.guilds.get(channel.guild.id)?.last_time || 0) -
+              (b.guilds.get(channel.guild.id)?.last_time || 0)
+          )
+          .sort(
+            (a, b) =>
+              (a.guilds.get(channel.guild.id)?.speaking ? 1 : 0) -
+              (b.guilds.get(channel.guild.id)?.speaking ? 1 : 0)
+          )[0];
     }
     return {
-      channel: client.client.channels.resolve(channel.id) as Discord.VoiceChannel | undefined,
+      channel: client.client.channels.resolve(channel.id) as
+        | Discord.BaseGuildVoiceChannel
+        | undefined,
       client,
     };
   }
