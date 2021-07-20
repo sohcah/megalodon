@@ -33,21 +33,13 @@ export class MegalodonClientController {
 
   async handleMessage(message: Discord.Message, client: MegalodonClient): Promise<void> {
     if (message.author.bot || message.content.startsWith(`</`)) return;
-    if (message.channel.type !== "dm" && !client.primary) return;
+    if (message.channel.type !== "DM" && !client.primary) return;
     const autoID = `${message.channel.id}_${message.author.id}`;
-    if ((message.channel.type === "dm" || this.auto.has(autoID)) && !message.content.match(/^"/)) {
+    if ((message.channel.type === "DM" || this.auto.has(autoID)) && !message.content.match(/^"/)) {
       const user = await this.db.get("SELECT * from users WHERE ID = ?", message.author.id);
       const { channel, client } = this.getChannel(message.author);
       if (!channel || !client) {
         message.react("🚫");
-        return;
-      }
-      if (
-        message.content.match(
-          /^(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)&?$/
-        )
-      ) {
-        await client.playYouTube(message.content, channel);
         return;
       }
       const ssml = this.getSSML(message, client, channel.guild, user);
@@ -165,6 +157,10 @@ export class MegalodonClientController {
       content = `${name} sent a file and says ${content}`;
     } else if (message.attachments.size > 0) {
       content = `${name} sent a file`;
+    } else if (message.stickers.size > 0 && content.length > 0) {
+      content = `${name} sent a ${message.stickers.first()?.name} sticker and says ${content}`;
+    } else if (message.stickers.size > 0) {
+      content = `${name} sent a ${message.stickers.first()?.name} sticker`;
     } else if (
       client.guilds.get(guild.id)?.last_user !== message.author.id ||
       (client.guilds.get(guild.id)?.last_time || 0) < Date.now() - 180000
@@ -179,10 +175,11 @@ export class MegalodonClientController {
   getChannel(
     user: Discord.User,
     clientDefault?: MegalodonClient
-  ): { channel?: Discord.BaseGuildVoiceChannel; client?: MegalodonClient } {
-    const channel: Discord.BaseGuildVoiceChannel = this.clients[0].client.channels.cache.find(
-      c => c instanceof Discord.BaseGuildVoiceChannel && c.members.has(user.id)
-    ) as Discord.BaseGuildVoiceChannel;
+  ): { channel?: Discord.VoiceChannel | Discord.StageChannel; client?: MegalodonClient } {
+    const channel: Discord.VoiceChannel | Discord.StageChannel =
+      this.clients[0].client.channels.cache.find(
+        c => (c instanceof Discord.VoiceChannel || c instanceof Discord.StageChannel) && c.members.has(user.id)
+      ) as Discord.VoiceChannel | Discord.StageChannel;
     if (!channel) return {};
     let client;
     if (clientDefault) {
@@ -195,7 +192,7 @@ export class MegalodonClientController {
         this.clients.find(
           c => (c.guilds.get(channel.guild.id)?.last_time || 0) < Date.now() - 300000
         );
-      client = client || this.clients.find(c => channel.members.has(c.client.user?.id || ""));
+      client = client || this.clients.find(c => channel.members.has(c.client.user?.id || "" as `${bigint}`));
       client =
         client ||
         this.clients
@@ -212,7 +209,8 @@ export class MegalodonClientController {
     }
     return {
       channel: client.client.channels.resolve(channel.id) as
-        | Discord.BaseGuildVoiceChannel
+        | Discord.VoiceChannel
+        | Discord.StageChannel
         | undefined,
       client,
     };
