@@ -31,6 +31,52 @@ export class MegalodonClientController {
     this.db = db;
   }
 
+  async handleRead(
+    interaction: Discord.ContextMenuInteraction,
+    megClient: MegalodonClient
+  ): Promise<void> {
+    const msg = interaction.options.getMessage("message");
+    if (!msg) {
+      interaction.reply("Unable to read message.");
+      return;
+    }
+    const message =
+      msg instanceof Discord.Message ? msg : new Discord.Message(megClient.client, msg);
+    const user = await this.db.get("SELECT * from users WHERE ID = ?", message.author.id);
+    const rereadUser = await this.db.get("SELECT * from users WHERE ID = ?", interaction.user.id);
+    const { channel, client } = this.getChannel(interaction.user);
+    if (!channel || !client) {
+      interaction.reply("Unable to read message.");
+      return;
+    }
+    const ssml = this.getSSML(
+      message,
+      client,
+      channel.guild,
+      user,
+      rereadUser,
+      rereadUser?.NAME ?? interaction.user.username,
+      interaction
+    );
+    if (!ssml) {
+      if (!interaction.replied) {
+        interaction.reply("Unable to read message.");
+      }
+      return;
+    }
+    const member = await channel.guild.members.fetch(message.author);
+    if (!member) {
+      interaction.reply("Unable to read message.");
+      return;
+    }
+    if (member.voice.suppress || member.voice.serverMute) {
+      interaction.reply("Unable to read message.");
+      return;
+    }
+    await client.playSSML(ssml, channel, interaction.user, rereadUser);
+    interaction.reply("Message read.");
+  }
+
   async handleMessage(message: Discord.Message, client: MegalodonClient): Promise<void> {
     if (message.author.bot || message.content.startsWith(`</`)) return;
     if (message.channel.type !== "DM" && !client.primary) return;
@@ -52,11 +98,11 @@ export class MegalodonClientController {
         message.react("⚠");
         return;
       }
-			if (member.voice.suppress || member.voice.serverMute) {
+      if (member.voice.suppress || member.voice.serverMute) {
         message.react("❌");
         return;
-			}
-			await client.playSSML(ssml, channel, message.author, user);
+      }
+      await client.playSSML(ssml, channel, message.author, user);
     }
   }
 
@@ -64,7 +110,10 @@ export class MegalodonClientController {
     message: Discord.Message,
     client: MegalodonClient,
     guild: Discord.Guild,
-    user?: User
+    user?: User,
+    rereadUser?: User,
+    rereadName?: string,
+    interaction?: Discord.ContextMenuInteraction
   ): string | void {
     const speech = new SpeechMarkdown();
     let content = message.content
@@ -116,7 +165,7 @@ export class MegalodonClientController {
       .replace(/\b-([0-9]+)\b/gi, "minus $1")
       .replace(/🙂/g, " smile ")
       .replace(/🏳️‍🌈/g, " pride flag ");
-    if (!user?.CLIPBLOCK) {
+    if (!(rereadUser ?? user)?.CLIPBLOCK) {
       content = content
         .replace(/\bdil?ligaf\b/gi, '!["https://files.thegameroom.uk/dilligaf.mp3"]')
         .replace(/\bbruh\b/gi, '!["https://files.thegameroom.uk/bruh.mp3"]')
@@ -124,14 +173,22 @@ export class MegalodonClientController {
         .replace(/\bwaa+\b/gi, '!["https://files.thegameroom.uk/waa.ogg"]')
         .replace(/\bwa+h+\b/gi, '!["https://files.thegameroom.uk/waa.ogg"]');
     }
-    if (content.length > 400 && !user?.BYPASS) {
-      message.channel.send(
-        "This message is too long. Please limit your message to 400 characters."
-      );
+    if (content.length > 400 && !(rereadUser ?? user)?.BYPASS) {
+      if (!interaction) {
+        message.channel.send(
+          "This message is too long. Please limit your message to 400 characters."
+        );
+      } else {
+        interaction.reply("This message is too long. Please limit your message to 400 characters.");
+      }
       return;
     }
-    if (user?.BLOCK) {
-      message.channel.send("You are blocked from using Text-to-Speech.");
+    if ((rereadUser ?? user)?.BLOCK) {
+      if (!interaction) {
+        message.channel.send("You are blocked from using Text-to-Speech.");
+      } else {
+        interaction.reply("You are blocked from using Text-to-Speech.");
+      }
       return;
     }
     const name = user?.NAME ?? message.member?.displayName ?? message.author.username;
@@ -162,10 +219,14 @@ export class MegalodonClientController {
     } else if (message.stickers.size > 0) {
       content = `${name} sent a ${message.stickers.first()?.name} sticker`;
     } else if (
+      !!rereadName ||
       client.guilds.get(guild.id)?.last_user !== message.author.id ||
       (client.guilds.get(guild.id)?.last_time || 0) < Date.now() - 180000
     ) {
       content = `${name} says ${content}`;
+    }
+    if (rereadName) {
+      content = `${rereadName} read the following message: ${content}`;
     }
     return speech.toSSML(content, {
       platform: "google-assistant",
@@ -178,7 +239,9 @@ export class MegalodonClientController {
   ): { channel?: Discord.VoiceChannel | Discord.StageChannel; client?: MegalodonClient } {
     const channel: Discord.VoiceChannel | Discord.StageChannel =
       this.clients[0].client.channels.cache.find(
-        c => (c instanceof Discord.VoiceChannel || c instanceof Discord.StageChannel) && c.members.has(user.id)
+        c =>
+          (c instanceof Discord.VoiceChannel || c instanceof Discord.StageChannel) &&
+          c.members.has(user.id)
       ) as Discord.VoiceChannel | Discord.StageChannel;
     if (!channel) return {};
     let client;
@@ -192,7 +255,9 @@ export class MegalodonClientController {
         this.clients.find(
           c => (c.guilds.get(channel.guild.id)?.last_time || 0) < Date.now() - 300000
         );
-      client = client || this.clients.find(c => channel.members.has(c.client.user?.id || "" as `${bigint}`));
+      client =
+        client ||
+        this.clients.find(c => channel.members.has(c.client.user?.id || ("" as `${bigint}`)));
       client =
         client ||
         this.clients

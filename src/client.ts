@@ -70,10 +70,16 @@ export class MegalodonClient {
           {
             name: this.controller.command,
             description: `Toggle ${this.controller.name}`,
+            type: "CHAT_INPUT" as const,
+          },
+          {
+            name: `Read Message`,
+            type: "MESSAGE" as const,
           },
           {
             name: `${this.controller.command}config`,
             description: `Change your ${this.controller.name} settings`,
+            type: "CHAT_INPUT" as const,
             options: [
               {
                 name: "name",
@@ -98,6 +104,26 @@ export class MegalodonClient {
 
         this.client.on("interactionCreate", async interaction => {
           if (
+            interaction.isCommand() &&
+            (interaction.commandName === this.controller.command ||
+              interaction.commandName === this.controller.command + "dev")
+          ) {
+            const autoID = `${interaction.channelId}_${interaction.member?.user.id}`;
+            if (this.controller.auto.has(autoID)) {
+              this.controller.auto.delete(autoID);
+              interaction.reply({
+                content: `${this.controller.name} Disabled in <#${interaction.channelId}> for ${interaction.member?.user.username}`,
+                allowedMentions: { parse: [] },
+              });
+            } else {
+              this.controller.auto.add(autoID);
+              interaction.reply({
+                content: `${this.controller.name} Enabled in <#${interaction.channelId}> for ${interaction.member?.user.username}`,
+                allowedMentions: { parse: [] },
+              });
+              return;
+            }
+          } else if (
             interaction.isCommand() &&
             (interaction.commandName === this.controller.command ||
               interaction.commandName === this.controller.command + "dev")
@@ -148,6 +174,11 @@ export class MegalodonClient {
               });
               return;
             }
+          } else if (
+            interaction.isContextMenu() &&
+            (interaction.commandName === "Read Message")
+          ) {
+            controller.handleRead(interaction, this);
           }
         });
       }
@@ -175,7 +206,7 @@ export class MegalodonClient {
     ssml: string,
     channel: Discord.VoiceChannel | Discord.StageChannel,
     user: Discord.User,
-    settings?: User
+    settings?: User,
   ): Promise<void> {
     let voice = this.settings.VOICE;
     if (settings?.PRONOUN === "f") voice = this.settings.VOICE_F || voice;
