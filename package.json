@@ -12,19 +12,19 @@
     "dev": "tsc && cross-env MEGDEV=true node lib/index.js"
   },
   "dependencies": {
-    "@discordjs/opus": "^0.5.3",
-    "@discordjs/voice": "^0.5.4",
-    "@google-cloud/text-to-speech": "^3.1.0",
+    "@discordjs/opus": "^0.7.0",
+    "@discordjs/voice": "^0.8.0",
+    "@google-cloud/text-to-speech": "^3.4.0",
     "@types/psl": "^1.1.0",
-    "@types/url-parse": "^1.4.3",
-    "discord.js": "^13.1.0-dev.1628683680.75b48d8",
+    "@types/url-parse": "^1.4.8",
+    "discord.js": "^13.6.0",
     "ffmpeg-static": "^4.4.0",
     "psl": "^1.8.0",
-    "speechmarkdown-js": "^1.6.0",
-    "sqlite": "^4.0.19",
+    "speechmarkdown-js": "^2.0.0",
+    "sqlite": "^4.0.23",
     "sqlite3": "^5.0.2",
     "to-readable-stream": "^2.1.0",
-    "url-parse": "^1.4.7"
+    "url-parse": "^1.5.9"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.23.0",

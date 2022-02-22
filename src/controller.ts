@@ -31,17 +31,13 @@ export class MegalodonClientController {
     this.db = db;
   }
 
-  async handleRead(
-    interaction: Discord.ContextMenuInteraction,
-    megClient: MegalodonClient
-  ): Promise<void> {
+  async handleRead(interaction: Discord.ContextMenuInteraction): Promise<void> {
     const msg = interaction.options.getMessage("message");
     if (!msg) {
       interaction.reply("Unable to read message.");
       return;
     }
-    const message =
-      msg instanceof Discord.Message ? msg : new Discord.Message(megClient.client, msg);
+    const message = msg as Discord.Message;
     const user = await this.db.get("SELECT * from users WHERE ID = ?", message.author.id);
     const rereadUser = await this.db.get("SELECT * from users WHERE ID = ?", interaction.user.id);
     const { channel, client } = this.getChannel(interaction.user);
@@ -88,7 +84,14 @@ export class MegalodonClientController {
         message.react("🚫");
         return;
       }
-      const ssml = this.getSSML(message, client, channel.guild, user);
+      let ssml: string | undefined;
+      try {
+        ssml = this.getSSML(message, client, channel.guild, user);
+      } catch {
+        message.react("⚠️");
+        message.reply("Unable to parse SpeechMarkdown (https://www.speechmarkdown.org)");
+        return;
+      }
       if (!ssml) {
         message.react("🚫");
         return;
@@ -114,7 +117,7 @@ export class MegalodonClientController {
     rereadUser?: User,
     rereadName?: string,
     interaction?: Discord.ContextMenuInteraction
-  ): string | void {
+  ): string | undefined {
     const speech = new SpeechMarkdown();
     let content = message.content
       .replace(
@@ -228,9 +231,14 @@ export class MegalodonClientController {
     if (rereadName) {
       content = `${rereadName} read the following message: ${content}`;
     }
-    return speech.toSSML(content, {
-      platform: "google-assistant",
-    });
+    try {
+      return speech.toSSML(content, {
+        platform: "google-assistant",
+      });
+    } catch {
+      console.debug(`Failed to convert ${content} to SSML`);
+      throw new Error("Failed to convert text to SSML.");
+    }
   }
 
   getChannel(

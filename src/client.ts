@@ -57,10 +57,10 @@ export class MegalodonClient {
     this.client.on("ready", async () => {
       const channel = this.client.channels.cache.get("792460755504070666");
       const embed = new Discord.MessageEmbed();
-      embed.setAuthor(
-        this.client.user?.username ?? "N/A",
-        this.client.user?.avatarURL() || undefined
-      );
+      embed.setAuthor({
+        name: this.client.user?.username ?? "N/A",
+        iconURL: this.client.user?.avatarURL() || undefined
+      });
       embed.setTitle(`${this.controller.name} Activated`);
       embed.setColor("#00ff00");
       embed.setTimestamp(Date.now());
@@ -178,7 +178,7 @@ export class MegalodonClient {
             interaction.isContextMenu() &&
             (interaction.commandName === "Read Message")
           ) {
-            controller.handleRead(interaction, this);
+            controller.handleRead(interaction);
           }
         });
       }
@@ -190,10 +190,10 @@ export class MegalodonClient {
   async disconnect(): Promise<void> {
     const channel = this.client.channels.cache.get("792460755504070666");
     const embed = new Discord.MessageEmbed();
-    embed.setAuthor(
-      this.client.user?.username as `${bigint}`,
-      this.client.user?.avatarURL() || undefined
-    );
+    embed.setAuthor({
+      name: this.client.user?.username as `${bigint}`,
+      iconURL: this.client.user?.avatarURL() || undefined
+    });
     embed.setTitle(`${this.controller.name} Deactivated`);
     embed.setColor("#ff0000");
     embed.setTimestamp(Date.now());
