@@ -76,6 +76,20 @@ export class MegalodonClientController {
   async handleMessage(message: Discord.Message, client: MegalodonClient): Promise<void> {
     if (message.author.bot || message.content.startsWith(`</`)) return;
     if (message.channel.type !== "DM" && !client.primary) return;
+    if (
+      message.content.startsWith("~auto_toggle ") &&
+      message.member?.permissions.has(Discord.Permissions.FLAGS.ADMINISTRATOR)
+    ) {
+      const autoID = message.content.split(" ")[1];
+      if (this.auto.has(autoID)) {
+        this.auto.delete(autoID);
+        message.reply(`Auto-read disabled for ${autoID}.`);
+      } else {
+        this.auto.add(autoID);
+        message.reply(`Auto-read enabled for ${autoID}.`);
+      }
+      return;
+    }
     const autoID = `${message.channel.id}_${message.author.id}`;
     if ((message.channel.type === "DM" || this.auto.has(autoID)) && !message.content.match(/^"/)) {
       const user = await this.db.get("SELECT * from users WHERE ID = ?", message.author.id);
@@ -170,11 +184,11 @@ export class MegalodonClientController {
       .replace(/🏳️‍🌈/g, " pride flag ");
     if (!(rereadUser ?? user)?.CLIPBLOCK) {
       content = content
-        .replace(/\bdil?ligaf\b/gi, '!["https://files.thegameroom.uk/dilligaf.mp3"]')
-        .replace(/\bbruh\b/gi, '!["https://files.thegameroom.uk/bruh.mp3"]')
-        .replace(/\bwill_AAA\b/gi, '!["https://files.thegameroom.uk/will_scream.wav"]')
-        .replace(/\bwaa+\b/gi, '!["https://files.thegameroom.uk/waa.ogg"]')
-        .replace(/\bwa+h+\b/gi, '!["https://files.thegameroom.uk/waa.ogg"]');
+        .replace(/\bdil?ligaf\b/gi, '!["https://thegameroomlegacyfiles.sohcah.dev/dilligaf.mp3"]')
+        .replace(/\bbruh\b/gi, '!["https://thegameroomlegacyfiles.sohcah.dev/bruh.mp3"]')
+        .replace(/\bwill_AAA\b/gi, '!["https://thegameroomlegacyfiles.sohcah.dev/will_scream.wav"]')
+        .replace(/\bwaa+\b/gi, '!["https://thegameroomlegacyfiles.sohcah.dev/waa.ogg"]')
+        .replace(/\bwa+h+\b/gi, '!["https://thegameroomlegacyfiles.sohcah.dev/waa.ogg"]');
     }
     if (content.length > 400 && !(rereadUser ?? user)?.BYPASS) {
       if (!interaction) {

@@ -7,17 +7,17 @@
   "scripts": {
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "build": "tsc",
-    "docker-build": "tsc && docker build . -t megalodon",
+    "docker-build": "docker build . -t megalodon",
     "start": "node lib/index.js",
     "dev": "tsc && cross-env MEGDEV=true node lib/index.js"
   },
   "dependencies": {
     "@discordjs/opus": "^0.7.0",
-    "@discordjs/voice": "^0.8.0",
+    "@discordjs/voice": "^0.10.0",
     "@google-cloud/text-to-speech": "^3.4.0",
     "@types/psl": "^1.1.0",
     "@types/url-parse": "^1.4.8",
-    "discord.js": "^13.6.0",
+    "discord.js": "^13.8.0",
     "ffmpeg-static": "^4.4.0",
     "psl": "^1.8.0",
     "speechmarkdown-js": "^2.0.0",

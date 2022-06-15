@@ -105,3 +105,5 @@ dist
 
 database.db
 serviceaccount.json
+
+lib
