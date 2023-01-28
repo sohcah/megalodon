@@ -35,7 +35,7 @@ export class TTSClient {
     settings: TTSClientSettings;
 
     private log(...args: unknown[]) {
-        console.log(`[🤖 ${this.controller.name}]`, ...args);
+        console.log(`[🤖 ${this.client.user?.username}]`, ...args);
     }
 
     constructor(
