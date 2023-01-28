@@ -262,6 +262,9 @@ export class TTSClient {
                         settings?.name || channel.guild.members.resolve(user.id)?.displayName || user.username
                     }`.slice(0, 32)
                 );
+
+            this.log("Setting Timeout");
+
             if (guildSettings.timeout) clearTimeout(guildSettings.timeout);
             guildSettings.timeout = setTimeout(() => {
                 connection.disconnect();
@@ -285,6 +288,8 @@ export class TTSClient {
             });
 
             this.guilds.set(channel.guild.id, guildSettings);
+
+            this.log("Done");
         }
         return;
     }
