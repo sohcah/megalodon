@@ -18,6 +18,7 @@ const ttsClient = new textToSpeech.TextToSpeechClient({
 import {TTSClientController} from "./controller";
 import {TTSClientSettings, TTSGuildOptions, User} from "./types";
 import {
+    AudioPlayer,
     AudioPlayerStatus,
     createAudioPlayer,
     createAudioResource,
@@ -233,9 +234,16 @@ export class TTSClient {
         }
         if (response.audioContent) {
             this.log("Playing Audio");
-            const audioPlayer = createAudioPlayer();
-            connection.subscribe(audioPlayer);
-            audioPlayer.play(createAudioResource(toReadableStream(response.audioContent)));
+            let audioPlayer: AudioPlayer;
+            try {
+                audioPlayer = createAudioPlayer();
+                connection.subscribe(audioPlayer);
+                audioPlayer.play(createAudioResource(toReadableStream(response.audioContent)));
+            } catch (err) {
+                this.log("Error Playing Audio", err);
+                throw err;
+            }
+            this.log("Audio Played");
 
             let guildSettings = this.guilds.get(channel.guild.id);
             if (!guildSettings) {
