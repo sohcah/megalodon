@@ -19,6 +19,7 @@
     "discord.js": "^14.7.1",
     "ffmpeg-static": "^5.1.0",
     "psl": "^1.9.0",
+    "sodium-native": "^3.4.1",
     "speechmarkdown-js": "^2.1.0",
     "to-readable-stream": "^2.1.0",
     "url-parse": "^1.5.10"
