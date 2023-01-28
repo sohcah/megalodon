@@ -23,7 +23,7 @@ import {
     createAudioPlayer,
     createAudioResource,
     getVoiceConnection,
-    joinVoiceChannel, NoSubscriberBehavior,
+    joinVoiceChannel,// NoSubscriberBehavior,
 } from "@discordjs/voice";
 import {ApplicationCommandDataResolvable} from "discord.js";
 import {p} from "./prisma";
@@ -241,9 +241,9 @@ export class TTSClient {
             let audioPlayer: AudioPlayer;
             try {
                 audioPlayer = createAudioPlayer({
-                    behaviors: {
-                        noSubscriber: NoSubscriberBehavior.Stop,
-                    },
+                    // behaviors: {
+                    //     noSubscriber: NoSubscriberBehavior.Stop,
+                    // },
                 });
                 connection.subscribe(audioPlayer);
                 audioPlayer.play(createAudioResource(toReadableStream(response.audioContent)));
