@@ -175,6 +175,7 @@ export class TTSClientController {
             .replace(/\byt\b/gi, "YouTube")
             .replace(/\basap\b/gi, "as soon as possible")
             .replace(/\bville\b/gi, "Villie")
+            .replace(/\bszy\b/gi, "Zai")
             .replace(/\b-([0-9]+)\b/gi, "minus $1")
             .replace(/🙂/g, " smile ")
             .replace(/🏳️‍🌈/g, " pride flag ");
