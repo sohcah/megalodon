@@ -4,6 +4,8 @@ WORKDIR /usr/src/Megalodon
 
 COPY package*.json ./
 COPY yarn.lock ./
+COPY .yarnrc.yml ./
+COPY .yarn ./.yarn
 
 RUN yarn install
 
