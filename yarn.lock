@@ -3216,7 +3216,7 @@ __metadata:
     prisma: ^4.9.0
     psl: ^1.9.0
     speechmarkdown-js: ^2.1.0
-    to-readable-stream: ^3.0.0
+    to-readable-stream: ^2.1.0
     typescript: ^4.9.4
     url-parse: ^1.5.10
   languageName: unknown
@@ -3238,10 +3238,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"to-readable-stream@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "to-readable-stream@npm:3.0.0"
-  checksum: ef93cd1ae209ec6d50afc356c421618d6d146f6ccbdeb75ece1a13d2dd00d5d41015c50f42246b38a13f2f25c2d7ad2897da366f2c1a18aa1a84b6d5fbdb9b5b
+"to-readable-stream@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "to-readable-stream@npm:2.1.0"
+  checksum: 42039fb968a56af99a7201fe01debb0bc55a585a2ab0b1746e322c339c50f91043b1269cedcc6350d2a5f81ceaa6cff7960704f748a59542d1f2c50aca5ea7b9
   languageName: node
   linkType: hard
 
