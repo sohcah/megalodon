@@ -61,6 +61,7 @@ export class TTSClient {
         this.client.login(settings.token);
 
         this.client.on("ready", async () => {
+            console.log(`🤖 ${this.controller.name} is ready!`);
             const channel = this.client.channels.cache.get("792460755504070666");
             const embed = new Discord.EmbedBuilder();
             embed.setAuthor({
@@ -193,6 +194,7 @@ export class TTSClient {
         if (settings?.pronoun === "m") voice = this.settings.voice_m || voice;
         if ((settings?.voice || "en-GB-Standard-D") !== "en-GB-Standard-D")
             voice = settings?.voice || voice;
+        console.log("Synthesizing Speech", ssml);
         const [response] = await ttsClient.synthesizeSpeech({
             input: {
                 ssml,
@@ -208,6 +210,7 @@ export class TTSClient {
             },
         });
 
+        console.log("Getting Voice Connection");
         const connection = getVoiceConnection(channel.guild.id, channel.guild.members.me?.id) ?? await joinVoiceChannel({
             channelId: channel.id,
             guildId: channel.guild.id,
@@ -225,6 +228,7 @@ export class TTSClient {
             await channel.guild.members.me?.voice.setSuppressed(false);
         }
         if (response.audioContent) {
+            console.log("Playing Audio");
             const audioPlayer = createAudioPlayer();
             connection.subscribe(audioPlayer);
             audioPlayer.play(createAudioResource(toReadableStream(response.audioContent)));
