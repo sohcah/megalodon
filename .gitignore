@@ -107,3 +107,7 @@ database.db
 serviceaccount.json
 
 lib
+
+.idea/
+.yarn/cache
+.yarn/install-state.gz
