@@ -23,7 +23,7 @@ import {
     createAudioPlayer,
     createAudioResource,
     getVoiceConnection,
-    joinVoiceChannel, NoSubscriberBehavior, StreamType,
+    joinVoiceChannel, NoSubscriberBehavior,
 } from "@discordjs/voice";
 import {ApplicationCommandDataResolvable} from "discord.js";
 import {p} from "./prisma";
@@ -211,7 +211,7 @@ export class TTSClient {
                 name: voice,
             },
             audioConfig: {
-                audioEncoding: "OGG_OPUS",
+                audioEncoding: "MP3",
                 pitch: Number(settings?.pitch) || this.settings.pitch || 0,
                 speakingRate: Number(settings?.rate) || 1,
             },
@@ -244,9 +244,7 @@ export class TTSClient {
                     },
                 });
                 connection.subscribe(audioPlayer);
-                audioPlayer.play(createAudioResource(toReadableStream(response.audioContent), {
-                    inputType: StreamType.OggOpus,
-                }));
+                audioPlayer.play(createAudioResource(toReadableStream(response.audioContent)));
             } catch (err) {
                 this.log("Error Playing Audio", err);
                 throw err;
@@ -288,7 +286,6 @@ export class TTSClient {
                     channel.guild.members.me?.setNickname(channel.guild.members.me.displayName?.split(" | ")[0].slice(0, 32));
                     guildSettings.speaking = undefined;
                 }
-                audioPlayer.stop();
             });
 
             audioPlayer.on("error", err => {
