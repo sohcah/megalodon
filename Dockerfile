@@ -6,6 +6,7 @@ COPY package*.json ./
 COPY yarn.lock ./
 COPY .yarnrc.yml ./
 COPY .yarn ./.yarn
+COPY prisma ./prisma
 
 RUN yarn install
 
