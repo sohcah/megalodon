@@ -223,6 +223,8 @@ export class TTSClient {
             guildId: channel.guild.id,
             adapterCreator: channel.guild.voiceAdapterCreator as any,
             group: channel.guild.members.me?.id,
+            selfDeaf: true,
+            selfMute: false,
         });
         if (connection.joinConfig.channelId !== channel.id) {
             connection.rejoin({
