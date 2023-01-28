@@ -71,7 +71,7 @@ export class TTSClientController {
 
     async handleMessage(message: Discord.Message, client: TTSClient): Promise<void> {
         if (message.author.bot || message.content.startsWith(`</`)) return;
-        if (message.channel.isDMBased() && !client.primary) return;
+        if (!message.channel.isDMBased() || !client.primary) return;
         if (
             message.content.startsWith("~auto_toggle ") &&
             message.member?.permissions.has(Discord.PermissionsBitField.Flags.Administrator)
