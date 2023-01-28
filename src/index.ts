@@ -1,5 +1,6 @@
 import {TTSClientController} from "./controller";
 import {p} from "./prisma";
+import "ffmpeg-static";
 
 function getRequiredEnv(key: string): string {
     const value = process.env[key];

@@ -17,6 +17,7 @@
     "@google-cloud/text-to-speech": "^4.1.0",
     "@prisma/client": "4.9.0",
     "discord.js": "^14.7.1",
+    "ffmpeg-static": "^5.1.0",
     "psl": "^1.9.0",
     "speechmarkdown-js": "^2.1.0",
     "to-readable-stream": "^2.1.0",
