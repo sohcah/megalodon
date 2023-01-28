@@ -151,6 +151,7 @@ export class TTSClient {
                                 })
                             } else {
                                 await p.users.create({
+                                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                                     data: {id: interaction.member!.user.id, name: name as string}
                                 })
                             }
@@ -277,6 +278,10 @@ export class TTSClient {
                     channel.guild.members.me?.setNickname(channel.guild.members.me.displayName?.split(" | ")[0].slice(0, 32));
                     guildSettings.speaking = undefined;
                 }
+            });
+
+            audioPlayer.on("error", err => {
+                this.log("Audio Player Error", err);
             });
 
             this.guilds.set(channel.guild.id, guildSettings);

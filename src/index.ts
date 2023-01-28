@@ -27,4 +27,12 @@ function getRequiredEnv(key: string): string {
         await controller.disconnect();
         process.exit();
     });
+
+    process.on("unhandledRejection", async (reason, promise) => {
+        console.error("Unhandled Rejection at:", promise, "reason:", reason);
+    });
+
+    process.on("uncaughtException", async (error) => {
+        console.error("Uncaught Exception:", error);
+    });
 })();
