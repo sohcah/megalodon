@@ -1,0 +1,34 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model users {
+  id           String   @id
+  name         String
+  pronoun      String?
+  voice        String?
+  pitch        Float?
+  rate         Float?
+  block        Boolean?
+  clipBlock    Boolean?
+  bypassLimit  Boolean?
+}
+
+model bots {
+  name     String   @id
+  token    String
+  voice    String
+  voice_f  String
+  voice_m  String
+  pitch    Float?
+}
+
