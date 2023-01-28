@@ -161,6 +161,7 @@ export class TTSClientController {
             .replace(/\bbbl\b/gi, "be back later")
             .replace(/\bgtg\b/gi, "got to go")
             .replace(/\bwtf\b/gi, "what the (fuck)[bleep]")
+            .replace(/\bffs\b/gi, "for (fuck)[bleep]'s sake")
             .replace(/\bcya\b/gi, "see ya")
             .replace(/\bsus\b/gi, "suss")
             .replace(/\bty\b/gi, "thank you")
@@ -176,6 +177,7 @@ export class TTSClientController {
             .replace(/\basap\b/gi, "as soon as possible")
             .replace(/\bville\b/gi, "Villie")
             .replace(/\bszy\b/gi, "Zai")
+            .replace(/\bcuppazee\b/gi, "Cuppazee")
             .replace(/\b-([0-9]+)\b/gi, "minus $1")
             .replace(/🙂/g, " smile ")
             .replace(/🏳️‍🌈/g, " pride flag ");
