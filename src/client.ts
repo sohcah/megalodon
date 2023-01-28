@@ -60,6 +60,7 @@ export class TTSClient {
                 Discord.IntentsBitField.Flags.GuildVoiceStates,
                 Discord.IntentsBitField.Flags.Guilds,
                 Discord.IntentsBitField.Flags.GuildEmojisAndStickers,
+                Discord.IntentsBitField.Flags.MessageContent,
             ],
         });
 
