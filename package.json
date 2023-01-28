@@ -8,6 +8,7 @@
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "build": "tsc",
     "start": "node lib/index.js",
+    "postinstall": "prisma generate",
     "dev": "tsc && cross-env MEGDEV=true node lib/index.js"
   },
   "dependencies": {
