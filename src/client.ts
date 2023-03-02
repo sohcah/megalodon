@@ -218,14 +218,31 @@ export class TTSClient {
         });
 
         this.log("Getting Voice Connection");
-        const connection = getVoiceConnection(channel.guild.id, channel.guild.members.me?.id) ?? await joinVoiceChannel({
-            channelId: channel.id,
-            guildId: channel.guild.id,
-            adapterCreator: channel.guild.voiceAdapterCreator as any,
-            group: channel.guild.members.me?.id,
-            selfDeaf: true,
-            selfMute: false,
-        });
+        const connection = getVoiceConnection(channel.guild.id, channel.guild.members.me?.id) ?? await (async () => {
+            const conn = joinVoiceChannel({
+                channelId: channel.id,
+                guildId: channel.guild.id,
+                adapterCreator: channel.guild.voiceAdapterCreator as any,
+                group: channel.guild.members.me?.id,
+                selfDeaf: true,
+                selfMute: false,
+            });
+            // Temporary resolution for DiscordJS/Voice bug caused by Discord's UDP Keep Alive packets
+            // https://github.com/discordjs/discord.js/issues/9185#issuecomment-1452514375
+            conn.on('stateChange', (oldState, newState) => {
+                const oldNetworking = Reflect.get(oldState, 'networking');
+                const newNetworking = Reflect.get(newState, 'networking');
+
+                const networkStateChangeHandler = (oldNetworkState: any, newNetworkState: any) => {
+                    const newUdp = Reflect.get(newNetworkState, 'udp');
+                    clearInterval(newUdp?.keepAliveInterval);
+                }
+
+                oldNetworking?.off('stateChange', networkStateChangeHandler);
+                newNetworking?.on('stateChange', networkStateChangeHandler);
+            });
+            return conn;
+        })();
         if (connection.joinConfig.channelId !== channel.id) {
             connection.rejoin({
                 channelId: channel.id,
