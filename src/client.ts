@@ -207,7 +207,7 @@ export class TTSClient {
                 ssml,
             },
             voice: {
-                languageCode: settings?.voice?.slice(0, 5) || "en-GB",
+                languageCode: voice.slice(0, 5),
                 name: voice,
             },
             audioConfig: {
