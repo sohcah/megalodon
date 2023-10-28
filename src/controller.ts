@@ -27,13 +27,13 @@ export class TTSClientController {
         this.clients = bots.map((settings, index) => new TTSClient(this, settings, index === 0));
     }
 
-    async handleRead(interaction: Discord.ContextMenuCommandInteraction): Promise<void> {
-        const msg = interaction.options.getMessage("message");
+    async handleRead(interaction: Discord.MessageContextMenuCommandInteraction): Promise<void> {
+        const msg = interaction.options.get("message")?.message;
         if (!msg) {
             interaction.reply("Unable to read message.");
             return;
         }
-        const message = msg as Discord.Message;
+        const message = msg;
         const user = (await p.users.findUnique({where: {id: message.author.id}})) ?? undefined;
         const rereadUser = (await p.users.findUnique({where: {id: interaction.user.id}})) ?? undefined;
         const {channel, client} = this.getChannel(interaction.user);
@@ -41,6 +41,7 @@ export class TTSClientController {
             interaction.reply("Unable to read message.");
             return;
         }
+        const voiceProvider = await client.getVoiceProvider(user);
         const ssml = this.getSSML(
             message,
             client,
@@ -48,7 +49,8 @@ export class TTSClientController {
             user,
             rereadUser,
             rereadUser?.name ?? interaction.user.username,
-            interaction
+            interaction,
+            voiceProvider.ssmlPlatform
         );
         if (!ssml) {
             if (!interaction.replied) {
@@ -65,7 +67,7 @@ export class TTSClientController {
             interaction.reply("Unable to read message.");
             return;
         }
-        await client.playSSML(ssml, channel, interaction.user, rereadUser);
+        await client.playSSML(ssml, channel, interaction.user, voiceProvider, rereadUser);
         interaction.reply("Message read.");
     }
 
@@ -95,8 +97,9 @@ export class TTSClientController {
                 return;
             }
             let ssml: string | undefined;
+            const voiceProvider = await client.getVoiceProvider(user);
             try {
-                ssml = this.getSSML(message, client, channel.guild, user);
+                ssml = this.getSSML(message, client, channel.guild, user, undefined, undefined, undefined, voiceProvider.ssmlPlatform);
             } catch {
                 message.react("⚠️");
                 message.reply("Unable to parse SpeechMarkdown (https://www.speechmarkdown.org)");
@@ -115,7 +118,7 @@ export class TTSClientController {
                 message.react("❌");
                 return;
             }
-            await client.playSSML(ssml, channel, message.author, user);
+            await client.playSSML(ssml, channel, message.author, voiceProvider, user);
         }
     }
 
@@ -126,7 +129,8 @@ export class TTSClientController {
         user?: User,
         rereadUser?: User,
         rereadName?: string,
-        interaction?: Discord.ContextMenuCommandInteraction
+        interaction?: Discord.ContextMenuCommandInteraction,
+        ssmlPlatform?: string | null,
     ): string | undefined {
         const speech = new SpeechMarkdown();
         let content = message.content
@@ -245,8 +249,8 @@ export class TTSClientController {
             content = `${rereadName} read the following message: ${content}`;
         }
         try {
-            return speech.toSSML(content, {
-                platform: "google-assistant",
+            return ssmlPlatform === null ? speech.toText(content) : speech.toSSML(content, {
+                platform: ssmlPlatform ?? "google-assistant",
             });
         } catch {
             console.debug(`Failed to convert ${content} to SSML`);

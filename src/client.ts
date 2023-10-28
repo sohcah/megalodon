@@ -15,8 +15,13 @@ const ttsClient = new textToSpeech.TextToSpeechClient({
 		? path.resolve(__dirname, "../serviceaccount.json")
 		: path.resolve("/megalodon-sa.json"),
 });
+
+// Setup ElevenLabs TTS
+// @ts-expect-error
+import elevenlabs from "elevenlabs-node";
+
 import {TTSClientController} from "./controller";
-import {TTSClientSettings, TTSGuildOptions, User} from "./types";
+import {TTSClientSettings, TTSGuildOptions, User, VoiceProvider} from "./types";
 import {
 	AudioPlayer,
 	AudioPlayerStatus,
@@ -163,7 +168,7 @@ export class TTSClient {
 							return;
 						}
 					} else if (
-						interaction.isContextMenuCommand() &&
+						interaction.isMessageContextMenuCommand() &&
 						(interaction.commandName === "Read Message")
 					) {
 						controller.handleRead(interaction);
@@ -190,32 +195,56 @@ export class TTSClient {
 		return;
 	}
 
+	async getVoiceProvider(settings?: User): Promise<VoiceProvider> {
+		if (settings?.voice?.startsWith("elevenlabs|")) {
+			const voiceId = settings.voice.split("|")[1];
+			return {
+				getAudioStream: async text => {
+					return await elevenlabs.textToSpeechStream(process.env.ELEVENLABS_API_KEY, voiceId, text)
+				},
+				ssmlPlatform: null,
+			};
+		}
+		return {
+			ssmlPlatform: "google-assistant",
+			getAudioStream: async ssml => {
+				let voice = this.settings.voice;
+				if (settings?.pronoun === "f") voice = this.settings.voice_f || voice;
+				if (settings?.pronoun === "m") voice = this.settings.voice_m || voice;
+				if ((settings?.voice || "en-GB-Standard-D") !== "en-GB-Standard-D")
+					voice = settings?.voice || voice;
+				this.log("Synthesizing Google Speech", ssml);
+				const [response] = await ttsClient.synthesizeSpeech({
+					input: {
+						ssml,
+					},
+					voice: {
+						languageCode: voice.slice(0, 5),
+						name: voice,
+					},
+					audioConfig: {
+						audioEncoding: "MP3",
+						pitch: Number(settings?.pitch) || this.settings.pitch || 0,
+						speakingRate: Number(settings?.rate) || 1,
+					},
+				});
+				if (response.audioContent) {
+					return toReadableStream(response.audioContent);
+				}
+				return null;
+			}
+		}
+	}
+
     async playSSML(
         ssml: string,
         channel: Discord.VoiceChannel | Discord.StageChannel,
         user: Discord.User,
+		provider: VoiceProvider,
         settings?: User,
     ): Promise<void> {
-        let voice = this.settings.voice;
-        if (settings?.pronoun === "f") voice = this.settings.voice_f || voice;
-        if (settings?.pronoun === "m") voice = this.settings.voice_m || voice;
-        if ((settings?.voice || "en-GB-Standard-D") !== "en-GB-Standard-D")
-            voice = settings?.voice || voice;
         this.log("Synthesizing Speech", ssml);
-        const [response] = await ttsClient.synthesizeSpeech({
-            input: {
-                ssml,
-            },
-            voice: {
-                languageCode: voice.slice(0, 5),
-                name: voice,
-            },
-            audioConfig: {
-                audioEncoding: "MP3",
-                pitch: Number(settings?.pitch) || this.settings.pitch || 0,
-                speakingRate: Number(settings?.rate) || 1,
-            },
-        });
+		const readableStream = await provider.getAudioStream(ssml);
 
         this.log("Getting Voice Connection");
 		const connection = getVoiceConnection(channel.guild.id, channel.guild.members.me?.id) ?? await joinVoiceChannel({
@@ -236,7 +265,7 @@ export class TTSClient {
         if (channel instanceof Discord.StageChannel) {
             await channel.guild.members.me?.voice.setSuppressed(false);
         }
-        if (response.audioContent) {
+        if (readableStream) {
             this.log("Playing Audio");
             let audioPlayer: AudioPlayer;
             try {
@@ -246,7 +275,7 @@ export class TTSClient {
                     // },
                 });
                 connection.subscribe(audioPlayer);
-                audioPlayer.play(createAudioResource(toReadableStream(response.audioContent)));
+                audioPlayer.play(createAudioResource(readableStream));
             } catch (err) {
                 this.log("Error Playing Audio", err);
                 throw err;
