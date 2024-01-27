@@ -182,6 +182,7 @@ export class TTSClientController {
             .replace(/\bville\b/gi, "Villie")
             .replace(/\bszy\b/gi, "Zai")
             .replace(/\bcuppazee\b/gi, "Cuppazee")
+            .replace(/\bpl[sz]\b/gi, "please")
             .replace(/\b-([0-9]+)\b/gi, "minus $1")
             .replace(/🙂/g, " smile ")
             .replace(/🏳️‍🌈/g, " pride flag ");
