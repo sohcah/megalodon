@@ -186,7 +186,8 @@ export class TTSClientController {
             .replace(/\bomw\b/gi, "on my way")
             .replace(/\b-([0-9]+)\b/gi, "minus $1")
             .replace(/🙂/g, " smile ")
-            .replace(/🏳️‍🌈/g, " pride flag ");
+            .replace(/🏳️‍🌈/g, " pride flag ")
+            .replace(/&/g, "&amp;");
         if (!(rereadUser ?? user)?.clipBlock) {
             content = content
                 .replace(/\bdil?ligaf\b/gi, '!["https://thegameroomlegacyfiles.sohcah.dev/dilligaf.mp3"]')
