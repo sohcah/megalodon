@@ -32,6 +32,7 @@ import {
 } from "@discordjs/voice";
 import {ApplicationCommandDataResolvable} from "discord.js";
 import {p} from "./prisma";
+import {Readable} from "stream";
 
 export class TTSClient {
 	guilds: Map<string, TTSGuildOptions> = new Map();
@@ -198,6 +199,26 @@ export class TTSClient {
 	async getVoiceProvider(settings?: User): Promise<VoiceProvider> {
 		if (settings?.voice?.startsWith("elevenlabs|")) {
 			const voiceId = settings.voice.split("|")[1];
+			if (voiceId === "sfx") {
+				return {
+					getAudioStream: async text => {
+						const response = await fetch("https://api.elevenlabs.io/v1/sound-generation", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								"xi-api-key": process.env.ELEVENLABS_API_KEY!,
+							},
+							body: JSON.stringify({
+								text,
+								// duration_seconds: 1,
+								// prompt_influence: 0.3,
+							})
+						});
+						return Readable.from(Buffer.from(await response.arrayBuffer()));
+					},
+					ssmlPlatform: null,
+				}
+			}
 			return {
 				getAudioStream: async text => {
 					return await elevenlabs.textToSpeechStream(process.env.ELEVENLABS_API_KEY, voiceId, text)
