@@ -197,29 +197,30 @@ export class TTSClient {
 		return;
 	}
 
-	async getVoiceProvider(settings?: User): Promise<VoiceProvider> {
+	async getVoiceProvider(settings: User | undefined, message: string): Promise<VoiceProvider> {
+		if (message.startsWith("sfx:")) {
+			return {
+				rawText: true,
+				getAudioStream: async text => {
+					const response = await fetch("https://api.elevenlabs.io/v1/sound-generation", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"xi-api-key": process.env.ELEVENLABS_API_KEY!,
+						},
+						body: JSON.stringify({
+							text: text.slice("sfx:".length)
+							// duration_seconds: 1,
+							// prompt_influence: 0.3,
+						})
+					});
+					return Readable.from(response.body!);
+				},
+				ssmlPlatform: null,
+			}
+		}
 		if (settings?.voice?.startsWith("elevenlabs|")) {
 			const voiceId = settings.voice.split("|")[1];
-			if (voiceId === "sfx") {
-				return {
-					getAudioStream: async text => {
-						const response = await fetch("https://api.elevenlabs.io/v1/sound-generation", {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-								"xi-api-key": process.env.ELEVENLABS_API_KEY!,
-							},
-							body: JSON.stringify({
-								text,
-								// duration_seconds: 1,
-								// prompt_influence: 0.3,
-							})
-						});
-						return Readable.from(response.body!);
-					},
-					ssmlPlatform: null,
-				}
-			}
 			return {
 				getAudioStream: async text => {
 					return await elevenlabs.textToSpeechStream(process.env.ELEVENLABS_API_KEY, voiceId, text)

@@ -5,7 +5,7 @@ import psl from "psl";
 import {SpeechMarkdown} from "speechmarkdown-js";
 
 import {TTSClient} from "./client";
-import {TTSClientSettings, User} from "./types";
+import {TTSClientSettings, User, VoiceProvider} from "./types";
 import {p} from "./prisma";
 
 export class TTSClientController {
@@ -41,16 +41,16 @@ export class TTSClientController {
             interaction.reply("Unable to read message.");
             return;
         }
-        const voiceProvider = await client.getVoiceProvider(user);
+        const voiceProvider = await client.getVoiceProvider(user, message.content);
         const ssml = this.getSSML(
             message,
             client,
             channel.guild,
+            voiceProvider,
             user,
             rereadUser,
             rereadUser?.name ?? interaction.user.username,
-            interaction,
-            voiceProvider.ssmlPlatform
+            interaction
         );
         if (!ssml) {
             if (!interaction.replied) {
@@ -97,9 +97,9 @@ export class TTSClientController {
                 return;
             }
             let ssml: string | undefined;
-            const voiceProvider = await client.getVoiceProvider(user);
+            const voiceProvider = await client.getVoiceProvider(user, message.content);
             try {
-                ssml = this.getSSML(message, client, channel.guild, user, undefined, undefined, undefined, voiceProvider.ssmlPlatform);
+                ssml = this.getSSML(message, client, channel.guild, voiceProvider, user, undefined, undefined, undefined);
             } catch {
                 message.react("⚠️");
                 message.reply("Unable to parse SpeechMarkdown (https://www.speechmarkdown.org)");
@@ -126,12 +126,15 @@ export class TTSClientController {
         message: Discord.Message,
         client: TTSClient,
         guild: Discord.Guild,
+        voiceProvider: VoiceProvider,
         user?: User,
         rereadUser?: User,
         rereadName?: string,
-        interaction?: Discord.ContextMenuCommandInteraction,
-        ssmlPlatform?: string | null,
+        interaction?: Discord.ContextMenuCommandInteraction
     ): string | undefined {
+        if (voiceProvider.rawText) {
+            return message.content;
+        }
         const speech = new SpeechMarkdown();
         let content = message.content
             .replace(
@@ -252,8 +255,8 @@ export class TTSClientController {
             content = `${rereadName} read the following message: ${content}`;
         }
         try {
-            return ssmlPlatform === null ? speech.toText(content) : speech.toSSML(content, {
-                platform: ssmlPlatform ?? "google-assistant",
+            return voiceProvider.ssmlPlatform === null ? speech.toText(content) : speech.toSSML(content, {
+                platform: voiceProvider.ssmlPlatform ?? "google-assistant",
             });
         } catch {
             console.debug(`Failed to convert ${content} to SSML`);

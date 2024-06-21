@@ -16,6 +16,7 @@ export type TTSGuildOptions = {
 export type User = users;
 
 export type VoiceProvider = {
+    rawText?: boolean;
     getAudioStream: (text: string) => Promise<Readable | null>;
     ssmlPlatform:
         | "amazon-alexa"
