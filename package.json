@@ -19,6 +19,7 @@
     "discord.js": "^14.13.0",
     "elevenlabs-node": "^1.2.0",
     "ffmpeg-static": "^5.1.0",
+    "node-fetch": "^3.3.2",
     "psl": "^1.9.0",
     "sodium-native": "^3.4.1",
     "speechmarkdown-js": "^2.1.0",
@@ -26,6 +27,7 @@
     "url-parse": "^1.5.10"
   },
   "devDependencies": {
+    "@types/node-fetch": "^2.6.11",
     "@types/psl": "^1.1.0",
     "@types/url-parse": "^1.4.8",
     "@typescript-eslint/eslint-plugin": "^5.49.0",
@@ -35,5 +37,9 @@
     "prisma": "^4.9.0",
     "typescript": "^5.2.2"
   },
-  "packageManager": "yarn@3.3.1"
+  "packageManager": "yarn@3.3.1",
+  "volta": {
+    "node": "16.20.2",
+    "yarn": "3.3.1"
+  }
 }

@@ -3,6 +3,7 @@ import * as Discord from "discord.js";
 import toReadableStream from "to-readable-stream";
 import path from "path";
 import {writeFileSync} from "fs";
+import fetch from "node-fetch";
 
 // Setup GC TTS
 import textToSpeech from "@google-cloud/text-to-speech";
@@ -214,7 +215,7 @@ export class TTSClient {
 								// prompt_influence: 0.3,
 							})
 						});
-						return Readable.from(Buffer.from(await response.arrayBuffer()));
+						return Readable.from(response.body!);
 					},
 					ssmlPlatform: null,
 				}
