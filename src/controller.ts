@@ -47,10 +47,10 @@ export class TTSClientController {
             client,
             channel.guild,
             voiceProvider,
+            interaction,
             user,
             rereadUser,
-            rereadUser?.name ?? interaction.user.username,
-            interaction
+            rereadUser?.name ?? interaction.user.username
         );
         if (!ssml) {
             if (!interaction.replied) {
@@ -71,7 +71,7 @@ export class TTSClientController {
         interaction.reply("Message read.");
     }
 
-    async handleMessage(message: Discord.Message, client: TTSClient): Promise<void> {
+    async handleMessage(message: Discord.OmitPartialGroupDMChannel<Discord.Message>, client: TTSClient): Promise<void> {
         if (message.author.bot || message.content.startsWith(`</`)) return;
         if (!message.channel.isDMBased() && !client.primary) return;
         if (
@@ -99,7 +99,7 @@ export class TTSClientController {
             let ssml: string | undefined;
             const voiceProvider = await client.getVoiceProvider(user, message.content);
             try {
-                ssml = this.getSSML(message, client, channel.guild, voiceProvider, user, undefined, undefined, undefined);
+                ssml = this.getSSML(message, client, channel.guild, voiceProvider, message, user, undefined, undefined);
             } catch {
                 message.react("⚠️");
                 message.reply("Unable to parse SpeechMarkdown (https://www.speechmarkdown.org)");
@@ -127,10 +127,10 @@ export class TTSClientController {
         client: TTSClient,
         guild: Discord.Guild,
         voiceProvider: VoiceProvider,
+        replyTo: Discord.ContextMenuCommandInteraction | Discord.OmitPartialGroupDMChannel<Discord.Message>,
         user?: User,
         rereadUser?: User,
         rereadName?: string,
-        interaction?: Discord.ContextMenuCommandInteraction
     ): string | undefined {
         if (voiceProvider.rawText) {
             return message.content;
@@ -200,20 +200,20 @@ export class TTSClientController {
                 .replace(/\bwa+h+\b/gi, '!["https://thegameroomlegacyfiles.sohcah.dev/waa.ogg"]');
         }
         if (content.length > 400 && !(rereadUser ?? user)?.bypassLimit) {
-            if (!interaction) {
-                message.channel.send(
+            if (!(replyTo instanceof Discord.ContextMenuCommandInteraction)) {
+                replyTo.channel.send(
                     "This message is too long. Please limit your message to 400 characters."
                 );
             } else {
-                interaction.reply("This message is too long. Please limit your message to 400 characters.");
+                replyTo.reply("This message is too long. Please limit your message to 400 characters.");
             }
             return;
         }
         if ((rereadUser ?? user)?.block) {
-            if (!interaction) {
-                message.channel.send("You are blocked from using Text-to-Speech.");
+            if (!(replyTo instanceof Discord.ContextMenuCommandInteraction)) {
+                replyTo.channel.send("You are blocked from using Text-to-Speech.");
             } else {
-                interaction.reply("You are blocked from using Text-to-Speech.");
+                replyTo.reply("You are blocked from using Text-to-Speech.");
             }
             return;
         }
