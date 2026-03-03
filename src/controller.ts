@@ -142,7 +142,7 @@ export class TTSClientController {
                 link => {
                     const url = urlParse(link);
                     const parsed = psl.parse(url.hostname);
-                    if (parsed.error) {
+                    if ("error" in parsed) {
                         return `${url.hostname} Link`;
                     } else {
                         return `${parsed.domain} Link`;

@@ -12,34 +12,34 @@
     "dev": "tsc && cross-env MEGDEV=true node lib/index.js"
   },
   "dependencies": {
-    "@discordjs/opus": "^0.9.0",
-    "@discordjs/voice": "^0.18.0",
-    "@google-cloud/text-to-speech": "^4.1.0",
-    "@prisma/client": "4.9.0",
-    "discord.js": "^14.16.3",
-    "elevenlabs-node": "^1.2.0",
-    "ffmpeg-static": "^5.1.0",
+    "@discordjs/opus": "^0.10.0",
+    "@discordjs/voice": "^0.19.0",
+    "@google-cloud/text-to-speech": "^4.2.3",
+    "@prisma/client": "4.16.2",
+    "@snazzah/davey": "^0.1.10",
+    "discord.js": "^14.25.1",
+    "elevenlabs-node": "^2.0.3",
+    "ffmpeg-static": "^5.3.0",
     "node-fetch": "^2.7.0",
-    "psl": "^1.10.0",
-    "sodium-native": "^4.3.1",
-    "speechmarkdown-js": "^2.1.0",
-    "to-readable-stream": "^2.1.0",
+    "psl": "^1.15.0",
+    "sodium-native": "^5.0.10",
+    "speechmarkdown-js": "^2.3.0",
+    "to-readable-stream": "^4.0.0",
     "url-parse": "^1.5.10"
   },
   "devDependencies": {
-    "@types/node-fetch": "^2.6.11",
-    "@types/psl": "^1.1.0",
-    "@types/url-parse": "^1.4.8",
-    "@typescript-eslint/eslint-plugin": "^5.49.0",
-    "@typescript-eslint/parser": "^5.49.0",
-    "cross-env": "^7.0.3",
-    "eslint": "^8.32.0",
-    "prisma": "^4.9.0",
-    "typescript": "^5.2.2"
+    "@types/node-fetch": "^2.6.13",
+    "@types/psl": "^1.11.0",
+    "@types/url-parse": "^1.4.11",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "cross-env": "^10.1.0",
+    "eslint": "^8.57.1",
+    "prisma": "^4.16.2",
+    "typescript": "^5.9.3"
   },
-  "packageManager": "yarn@4.5.1",
+  "packageManager": "yarn@4.13.0",
   "volta": {
-    "node": "20.18.0",
-    "yarn": "4.5.1"
+    "node": "24.14.0"
   }
 }

@@ -144,7 +144,7 @@ export class TTSClient {
 							return;
 						}
 					} else if (
-						interaction.isCommand() &&
+						interaction.isChatInputCommand() &&
 						(interaction.commandName === this.controller.command + "config" ||
 							interaction.commandName === this.controller.command + "configdev")
 					) {
